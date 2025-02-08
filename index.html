@@ -1,59 +1,107 @@
 <div>Teachable Machine Image Model</div>
-<button type="button" onclick="init()">Start</button>
+<button type="button" onclick="initWebcam()">Abrir Webcam</button>
+<button type="button" onclick="initImageUpload()">Subir Imagen</button>
 <div id="webcam-container"></div>
+<div id="image-container"></div>
 <div id="label-container"></div>
+
+<input type="file" id="image-upload" accept="image/*" style="display: none;">
+
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
 <script type="text/javascript">
-    // More API functions here:
-    // https://github.com/googlecreativelab/teachablemachine-community/tree/master/libraries/image
-
-    // the link to your model provided by Teachable Machine export panel
-    const URL = "./tm-my-image-model/";
+    const URL = "./tm-my-image-model/"; // Asegúrate de que la URL es correcta
 
     let model, webcam, labelContainer, maxPredictions;
+    let currentMode = null; // Para trackear el modo actual: 'webcam' o 'image'
 
-    // Load the image model and setup the webcam
     async function init() {
         const modelURL = URL + "model.json";
         const metadataURL = URL + "metadata.json";
-
-        // load the model and metadata
-        // Refer to tmImage.loadFromFiles() in the API to support files from a file picker
-        // or files from your local hard drive
-        // Note: the pose library adds "tmImage" object to your window (window.tmImage)
         model = await tmImage.load(modelURL, metadataURL);
         maxPredictions = model.getTotalClasses();
-
-        // Convenience function to setup a webcam
-        const flip = true; // whether to flip the webcam
-        webcam = new tmImage.Webcam(200, 200, flip); // width, height, flip
-        await webcam.setup(); // request access to the webcam
-        await webcam.play();
-        window.requestAnimationFrame(loop);
-
-        // append elements to the DOM
-        document.getElementById("webcam-container").appendChild(webcam.canvas);
         labelContainer = document.getElementById("label-container");
-        for (let i = 0; i < maxPredictions; i++) { // and class labels
+        for (let i = 0; i < maxPredictions; i++) {
             labelContainer.appendChild(document.createElement("div"));
         }
     }
 
-    async function loop() {
-        webcam.update(); // update the webcam frame
-        await predict();
-        window.requestAnimationFrame(loop);
+    async function initWebcam() {
+        if (!model) await init(); // Carga el modelo si aún no se ha cargado
+
+        if (currentMode === 'image') {
+            clearImage();
+        }
+        currentMode = 'webcam';
+
+        if (!webcam) { // Inicializa la webcam solo una vez
+            const flip = true;
+            webcam = new tmImage.Webcam(200, 200, flip);
+            await webcam.setup();
+            await webcam.play();
+            window.requestAnimationFrame(loopWebcam);
+            document.getElementById("webcam-container").appendChild(webcam.canvas);
+        } else {
+            document.getElementById("webcam-container").appendChild(webcam.canvas); // Restaura el canvas si se había quitado
+            webcam.play(); // Asegura que la webcam esté activa
+            window.requestAnimationFrame(loopWebcam);
+        }
     }
 
-    // run the webcam image through the image model
-    async function predict() {
-        // predict can take in an image, video or canvas html element
-        const prediction = await model.predict(webcam.canvas);
+    async function loopWebcam() {
+        if (currentMode !== 'webcam') return; // Detiene el loop si no está en modo webcam
+        webcam.update();
+        await predict(webcam.canvas);
+        window.requestAnimationFrame(loopWebcam);
+    }
+
+
+    async function initImageUpload() {
+        if (!model) await init(); // Carga el modelo si aún no se ha cargado
+
+        if (currentMode === 'webcam') {
+            clearWebcam();
+        }
+        currentMode = 'image';
+
+        const imageUpload = document.getElementById('image-upload');
+        imageUpload.click(); // Abre el diálogo de selección de archivos
+
+        imageUpload.onchange = async function (event) {
+            const file = event.target.files[0];
+            const reader = new FileReader();
+
+            reader.onload = async function (e) {
+                const img = new Image();
+                img.src = e.target.result;
+                img.onload = async () => {
+                    clearImage(); // Limpia la imagen anterior
+                    document.getElementById("image-container").appendChild(img);
+                    await predict(img);
+                };
+            }
+            reader.readAsDataURL(file);
+            imageUpload.value = ''; // Resetea el input para permitir la selección de otra imagen
+        }
+    }
+
+    async function predict(input) { // Ahora acepta tanto canvas como imagen
+        const prediction = await model.predict(input);
         for (let i = 0; i < maxPredictions; i++) {
-            const classPrediction =
-                prediction[i].className + ": " + prediction[i].probability.toFixed(2);
+            const classPrediction = prediction[i].className + ": " + prediction[i].probability.toFixed(2);
             labelContainer.childNodes[i].innerHTML = classPrediction;
         }
     }
+
+    function clearWebcam() {
+        if (webcam) {
+            webcam.pause(); // Detiene la webcam
+            document.getElementById("webcam-container").innerHTML = ''; // Limpia el contenedor
+        }
+    }
+
+    function clearImage() {
+        document.getElementById("image-container").innerHTML = '';
+    }
+
 </script>
