@@ -1,4 +1,61 @@
 <div>Teachable Machine Image Model</div>
+<style>
+    /* Estilos generales */
+    body {
+        font-family: sans-serif;
+        background-color: #f0f0f0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin: 0;
+        padding: 20px;
+    }
+
+    button {
+        padding: 10px 20px;
+        margin: 10px;
+        border: none;
+        border-radius: 5px;
+        background-color: #4CAF50;
+        color: white;
+        cursor: pointer;
+    }
+
+    #webcam-container,
+    #image-container {
+        width: 200px;
+        height: 200px;
+        border: 1px solid #ccc;
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    #image-container img {
+        max-width: 100%;
+        max-height: 100%;
+    }
+
+    #label-container {
+        margin-top: 20px;
+    }
+
+    #label-container div {
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+
+    /* Diseño responsivo */
+    @media (max-width: 400px) {
+
+        #webcam-container,
+        #image-container {
+            width: 150px;
+            height: 150px;
+        }
+    }
+</style>
 <button type="button" onclick="initWebcam()">Abrir Webcam</button>
 <button type="button" onclick="initImageUpload()">Subir Imagen</button>
 <div id="webcam-container"></div>
