@@ -152,6 +152,7 @@
                             clearImage();
                             document.getElementById("image-container").appendChild(img);
                             predict(img); // Llama a predict después de que la imagen se muestra
+                            document.getElementById("image-container").style.display = 'block'; // Muestra el contenedor *solo* ahora
                         };
                     }
                     reader.readAsDataURL(file);
@@ -161,7 +162,7 @@
                 }
             }
             imageUpload.click();
-            document.getElementById("image-container").style.display = 'block';
+            // Ya no se muestra el contenedor aquí
         }
 
         async function predict(input) {
