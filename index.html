@@ -176,10 +176,11 @@
         }
 
         function clearWebcam() {
-            if (webcam) {
-                webcam.stop(); // Detiene la cámara por completo
+            if (webcam !== undefined) {
+                webcam.dispose(); // Detiene la cámara por completo y libera recursos
                 document.getElementById("webcam-container").innerHTML = '';
                 document.getElementById("webcam-container").style.display = 'none';
+                webcam = undefined; // Restablece la variable webcam a undefined
             }
         }
 
