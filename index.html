@@ -177,7 +177,7 @@
 
         function clearWebcam() {
             if (webcam !== undefined) {
-                webcam.dispose(); // Detiene la cámara por completo y libera recursos
+                webcam.video.srcObject = null; // Detiene el stream de video y libera la cámara
                 document.getElementById("webcam-container").innerHTML = '';
                 document.getElementById("webcam-container").style.display = 'none';
                 webcam = undefined; // Restablece la variable webcam a undefined
