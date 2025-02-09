@@ -28,19 +28,22 @@
         #webcam-container,
         #image-container {
             width: 250px;
-            /* Ancho */
             height: 250px;
-            /* Alto */
             border: 1px solid #ccc;
             margin-bottom: 10px;
             display: flex;
             justify-content: center;
             align-items: center;
+            overflow: hidden;
+            /* Evita que el contenido se desborde */
         }
 
-        #image-container img {
+        #image-container img,
+        #webcam-container canvas {
             max-width: 100%;
+            /* Ancho máximo del 100% del contenedor */
             max-height: 100%;
+            /* Alto máximo del 100% del contenedor */
         }
 
         #label-container {
@@ -133,9 +136,7 @@
             currentMode = 'image';
 
             const imageUpload = document.getElementById('image-upload');
-            imageUpload.click();
-
-            imageUpload.onchange = async function (event) {
+            imageUpload.onchange = async function (event) { // Corrección: Mueve esta línea aquí
                 const file = event.target.files[0];
                 const reader = new FileReader();
 
@@ -151,6 +152,7 @@
                 reader.readAsDataURL(file);
                 imageUpload.value = '';
             }
+            imageUpload.click(); // Y deja esta línea aquí
             document.getElementById("image-container").style.display = 'block';
         }
 
