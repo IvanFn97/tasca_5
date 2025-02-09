@@ -44,6 +44,8 @@
             /* Ancho máximo del 100% del contenedor */
             max-height: 100%;
             /* Alto máximo del 100% del contenedor */
+            object-fit: contain;
+            /* Ajusta la imagen al contenedor manteniendo su relación de aspecto */
         }
 
         #label-container {
@@ -136,31 +138,41 @@
             currentMode = 'image';
 
             const imageUpload = document.getElementById('image-upload');
-            imageUpload.onchange = async function (event) { // Corrección: Mueve esta línea aquí
-                const file = event.target.files[0];
-                const reader = new FileReader();
+            imageUpload.onchange = async function (event) {
+                try {
+                    const file = event.target.files[0];
+                    const reader = new FileReader();
 
-                reader.onload = async function (e) {
-                    const img = new Image();
-                    img.src = e.target.result;
-                    img.onload = async () => {
-                        clearImage();
-                        document.getElementById("image-container").appendChild(img);
-                        await predict(img);
-                    };
+                    reader.onload = async function (e) {
+                        const img = new Image();
+                        img.src = e.target.result;
+
+                        // Espera a que la imagen se renderice completamente
+                        img.onload = () => {
+                            clearImage();
+                            document.getElementById("image-container").appendChild(img);
+                            predict(img); // Llama a predict después de que la imagen se muestra
+                        };
+                    }
+                    reader.readAsDataURL(file);
+                    imageUpload.value = '';
+                } catch (error) {
+                    console.error("Error al cargar la imagen:", error);
                 }
-                reader.readAsDataURL(file);
-                imageUpload.value = '';
             }
-            imageUpload.click(); // Y deja esta línea aquí
+            imageUpload.click();
             document.getElementById("image-container").style.display = 'block';
         }
 
         async function predict(input) {
-            const prediction = await model.predict(input);
-            for (let i = 0; i < maxPredictions; i++) {
-                const classPrediction = prediction[i].className + ": " + prediction[i].probability.toFixed(2);
-                labelContainer.childNodes[i].innerHTML = classPrediction;
+            try {
+                const prediction = await model.predict(input);
+                for (let i = 0; i < maxPredictions; i++) {
+                    const classPrediction = prediction[i].className + ": " + prediction[i].probability.toFixed(2);
+                    labelContainer.childNodes[i].innerHTML = classPrediction;
+                }
+            } catch (error) {
+                console.error("Error al realizar la predicción:", error);
             }
         }
 
