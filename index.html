@@ -29,7 +29,8 @@
         #image-container {
             width: 250px;
             height: 250px;
-            border: 1px solid #ccc;
+            border: 5px solid #ccc;
+            /* Borde más grueso */
             margin-bottom: 10px;
             display: flex;
             justify-content: center;
@@ -40,12 +41,12 @@
 
         #image-container img,
         #webcam-container canvas {
-            max-width: 100%;
-            /* Ancho máximo del 100% del contenedor */
-            max-height: 100%;
-            /* Alto máximo del 100% del contenedor */
-            object-fit: contain;
-            /* Ajusta la imagen al contenedor manteniendo su relación de aspecto */
+            width: 100%;
+            /* Ancho completo del contenedor */
+            height: 100%;
+            /* Alto completo del contenedor */
+            object-fit: cover;
+            /* Cubre todo el contenedor manteniendo la relación de aspecto */
         }
 
         #label-container {
@@ -134,6 +135,7 @@
 
             if (currentMode === 'webcam') {
                 clearWebcam();
+                webcam.pause(); // Detiene la webcam al cambiar al modo imagen
             }
             currentMode = 'image';
 
@@ -147,12 +149,11 @@
                         const img = new Image();
                         img.src = e.target.result;
 
-                        // Espera a que la imagen se renderice completamente
                         img.onload = () => {
                             clearImage();
                             document.getElementById("image-container").appendChild(img);
-                            predict(img); // Llama a predict después de que la imagen se muestra
-                            document.getElementById("image-container").style.display = 'block'; // Muestra el contenedor *solo* ahora
+                            predict(img);
+                            document.getElementById("image-container").style.display = 'block';
                         };
                     }
                     reader.readAsDataURL(file);
@@ -162,7 +163,6 @@
                 }
             }
             imageUpload.click();
-            // Ya no se muestra el contenedor aquí
         }
 
         async function predict(input) {
