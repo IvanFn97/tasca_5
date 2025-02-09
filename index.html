@@ -104,7 +104,7 @@
             if (!model) await init();
 
             if (currentMode === 'image') {
-                clearWebcam();
+                clearImage(); // Limpia el contenedor de imagen antes de mostrar la webcam
             }
             currentMode = 'webcam';
 
