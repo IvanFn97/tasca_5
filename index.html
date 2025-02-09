@@ -85,7 +85,8 @@
     <script type="text/javascript">
         const URL = "./tm-my-image-model/";
 
-        let model, webcam, labelContainer, maxPredictions;
+        let model, labelContainer, maxPredictions;
+        let webcam = null; // Inicializa webcam como null
         let currentMode = null;
 
         async function init() {
@@ -103,30 +104,39 @@
             if (!model) await init();
 
             if (currentMode === 'image') {
-                clearImage();
+                clearWebcam();
             }
             currentMode = 'webcam';
 
-            if (!webcam) {
+            if (webcam === null) { // Verifica si webcam es null antes de crear una nueva instancia
                 const flip = true;
                 webcam = new tmImage.Webcam(200, 200, flip);
-                await webcam.setup();
-                await webcam.play();
-                window.requestAnimationFrame(loopWebcam);
-                document.getElementById("webcam-container").appendChild(webcam.canvas);
+                try {
+                    await webcam.setup();
+                    await webcam.play();
+                    window.requestAnimationFrame(loopWebcam);
+                    document.getElementById("webcam-container").appendChild(webcam.canvas);
+                    document.getElementById("webcam-container").style.display = 'block';
+                } catch (error) {
+                    console.error("Error al iniciar la webcam:", error);
+                    clearWebcam(); // Limpia en caso de error
+                }
             } else {
                 document.getElementById("webcam-container").appendChild(webcam.canvas);
                 webcam.play();
                 window.requestAnimationFrame(loopWebcam);
+                document.getElementById("webcam-container").style.display = 'block';
             }
-            document.getElementById("webcam-container").style.display = 'block';
         }
+
 
         async function loopWebcam() {
             if (currentMode !== 'webcam') return;
-            webcam.update();
-            await predict(webcam.canvas);
-            window.requestAnimationFrame(loopWebcam);
+            if (webcam && webcam.canvas) { // Verifica si webcam y webcam.canvas existen
+                webcam.update();
+                await predict(webcam.canvas);
+                window.requestAnimationFrame(loopWebcam);
+            }
         }
 
         async function initImageUpload() {
@@ -176,11 +186,15 @@
         }
 
         function clearWebcam() {
-            if (webcam !== undefined) {
-                webcam.video.srcObject = null; // Detiene el stream de video y libera la cámara
-                document.getElementById("webcam-container").innerHTML = '';
+            if (webcam) {
+                try {
+                    webcam.stop(); // Detiene la cámara (si existe)
+                    webcam.canvas.remove(); // Remueve el canvas del DOM
+                } catch (error) {
+                    console.error("Error al detener la webcam:", error);
+                }
+                webcam = null; // Resetea la variable webcam a null
                 document.getElementById("webcam-container").style.display = 'none';
-                webcam = undefined; // Restablece la variable webcam a undefined
             }
         }
 
